@@ -5,6 +5,9 @@ GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "llama-3.3-70b-versatile"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
+# Kept because app.py still imports this setting.
+OLLAMA_REQUEST_TIMEOUT = 120
+
 
 class OllamaError(RuntimeError):
     """AI service error."""
@@ -17,7 +20,11 @@ def ensure_ollama_is_reachable():
         )
 
 
-def generate_ollama_response(prompt, max_tokens=700, request_timeout=120):
+def generate_ollama_response(
+    prompt,
+    max_tokens=700,
+    request_timeout=OLLAMA_REQUEST_TIMEOUT
+):
     if not GROQ_API_KEY:
         raise OllamaError(
             "AI service is not configured. Please set GROQ_API_KEY."
@@ -45,10 +52,12 @@ def generate_ollama_response(prompt, max_tokens=700, request_timeout=120):
             json=payload,
             timeout=request_timeout
         )
+
     except requests.exceptions.Timeout as error:
         raise OllamaError(
             "The AI service took too long to respond. Please try again."
         ) from error
+
     except requests.exceptions.RequestException as error:
         raise OllamaError(
             "Unable to connect to the AI service. Please try again."
@@ -62,6 +71,7 @@ def generate_ollama_response(prompt, max_tokens=700, request_timeout=120):
     try:
         data = response.json()
         answer = data["choices"][0]["message"]["content"].strip()
+
     except (ValueError, KeyError, IndexError, TypeError) as error:
         raise OllamaError(
             "The AI service returned an invalid answer. Please try again."
