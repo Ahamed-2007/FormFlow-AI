@@ -2,7 +2,7 @@ import os
 import requests
 
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-GROQ_MODEL = "llama-3.3-70b-versatile"
+GROQ_MODEL ="llama-3.1-8b-instant"
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 # Kept because app.py still imports this setting.
