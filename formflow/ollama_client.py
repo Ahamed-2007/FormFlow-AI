@@ -60,12 +60,28 @@ def generate_ollama_response(
 
     except requests.exceptions.RequestException as error:
         raise OllamaError(
-            "Unable to connect to the AI service. Please try again."
+            f"Unable to connect to the AI service: {error}"
         ) from error
 
+    # Show Groq's actual error message for debugging.
     if not response.ok:
+        try:
+            error_data = response.json()
+
+            if isinstance(error_data.get("error"), dict):
+                error_message = error_data["error"].get(
+                    "message",
+                    response.text
+                )
+            else:
+                error_message = response.text
+
+        except ValueError:
+            error_message = response.text
+
         raise OllamaError(
-            f"The AI service returned an HTTP error ({response.status_code})."
+            f"The AI service returned an HTTP error "
+            f"({response.status_code}): {error_message}"
         )
 
     try:
